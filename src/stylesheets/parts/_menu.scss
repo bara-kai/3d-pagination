@@ -1,0 +1,30 @@
+@use '../globals' as *;
+@use './common' as *;
+
+.menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: $navHeight;
+  z-index: 100;
+  padding: 0 10px;
+  @extend .font-md;
+
+  & > ul {
+    max-width: $contentMaxWidth;
+    height: 100%;
+    padding: 0;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  &__item {
+    list-style: none;
+    display: block;
+    & > a {
+      color: $cWhite;
+      text-decoration: none !important;
+    }
+  }
+}
