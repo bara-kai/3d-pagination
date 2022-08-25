@@ -4,20 +4,88 @@ block locals
   -var title = 'home';
   
 block content
-  .slider.js-slider
-    div.slider__inner.js-slider__inner
-    .slide.js-slide
-      div.slide__content
-      div.slider__text.js-slider__text
-        .hero__text
-          h1 3d animation
-          p さぁ　はじめよう
-    .slide.js-slide
-      div.slide__content
-    .slide.js-slide
-      div.slide__content
-    .slide.js-slide
-      div.slide__content
-    .slide.js-slide
-      div.slide__content
-    
+  main.main-content
+    .slider.js-slider
+      .slider__inner.js-slider__inner
+        .slide.js-slide
+          .slide__content.hero
+            .slider__text.js-slider__text.hero__text
+                h1 3d slide
+                p Thanks for coming
+            .slider__cloud.cloud__1
+              img(src="../images/cloud_1.png")
+            .slider__cloud.cloud__2
+              img(src="../images/cloud_2.png")
+        .slide.js-slide
+          .slide__content
+            .slider__text.js-slider__text.main__text
+              h1 Spring
+            .slider__image
+              img(src="../images/sakura.jpg")
+            .slider__content 
+              a(href="#").more 
+                .more__inner
+                  span mroe
+                  span.more__line.top
+                  span.more__line.bottom
+        .slide.js-slide
+          .slide__content
+            .slider__text.js-slider__text.main__text
+              h1 Summer
+            .slider__image
+              img(src="../images/azisai.jpg")
+            .slider__content 
+              a(href="#").more 
+                .more__inner
+                  span mroe
+                  span.more__line.top
+                  span.more__line.bottom
+        .slide.js-slide
+          .slide__content
+            .slider__text.js-slider__text.main__text
+              h1 autumn
+            .slider__image
+              img(src="../images/momizi.jpg")
+            .slider__content 
+              a(href="#").more 
+                .more__inner
+                  span mroe
+                  span.more__line.top
+                  span.more__line.bottom
+        .slide.js-slide
+          .slide__content
+            .slider__text.js-slider__text.main__text
+              h1 winter
+            .slider__image
+              img(src="../images/ume.jpg")
+            .slider__content 
+              a(href="#").more 
+                .more__inner
+                  span mroe
+                  span.more__line.top
+                  span.more__line.bottom
+    nav.center-nav 
+      ul 
+        li.center-nav__item 春 
+        li.center-nav__item 夏
+        li.center-nav__item 秋
+        li.center-nav__item 冬
+    nav.sub-nav 
+      ul
+        li.sub-nav__item.cPink
+          span.chai 桜
+          span.eng Sakura
+        li.sub-nav__item.cPurple
+          span.chai 紫陽花
+          span.eng Azisai
+        li.sub-nav__item.cOrange 
+          span.chai 紅葉
+          span.eng Momizi
+        li.sub-nav__item.cWhite
+          span.chai 梅
+          span.eng Ume
+    .rotate-link
+      a(href="#")
+        span.rotate-link__rotate-text 3d animation
+        span.rotate-link__center-text barakai
+    span.center-line

@@ -3,20 +3,21 @@ import '../stylesheets/vendors/css-reset.css';
 import '../stylesheets/style.scss';
 
 import '../images/hero.png';
-import '../images/spring.jpg';
-import '../images/summer.jpg';
-import '../images/autumn.jpg';
-import '../images/winter.jpg';
+import '../images/sakura_nega.jpg';
+import '../images/azisai_nega.jpg';
+import '../images/momizi_nega.jpg';
+import '../images/uem_nega.jpg';
 import '../images/displavement/noise_1.png';
 
 // jsライブラリー読み込み
-import $ from 'jquery';
+import $, { get } from 'jquery';
 import { scrollify } from 'jquery-scrollify/jquery.scrollify';
 import * as THREE from 'three';
 import vertexShader from './shader/vertex.glsl';
 import fragmentShader from './shader/fragment.glsl';
 import { gsap } from 'gsap';
-import { sample, times, update } from 'lodash';
+import { constant, sample, times, update } from 'lodash';
+import { Material, NoBlending } from 'three';
 
 class Slider {
   constructor() {
@@ -29,6 +30,21 @@ class Slider {
     this.inner = this.el.querySelector('.js-slider__inner');
     this.slides = [...this.el.querySelectorAll('.js-slide')];
 
+    // 画面要素
+    this.centerNavs = document.querySelectorAll('.center-nav__item');
+    this.centerNav = document.querySelector('.center-nav');
+
+    this.subNavs = document.querySelectorAll('.sub-nav__item');
+    this.centerLine = document.querySelector('.center-line');
+    this.rotateLink = document.querySelector('.rotate-link');
+    this.alphaContent = [];
+    this.alphaContent.push(
+      this.centerNavs,
+      this.subNavs,
+      this.centerLine,
+      this.rotateLink
+    );
+
     this.renderer = null;
     this.scene = null;
     this.clock = null;
@@ -36,10 +52,10 @@ class Slider {
 
     this.images = [
       '../images/hero.png',
-      '../images/spring.jpg',
-      '../images/summer.jpg',
-      '../images/autumn.jpg',
-      '../images/winter.jpg',
+      '../images/sakura_nega.jpg',
+      '../images/azisai_nega.jpg',
+      '../images/momizi_nega.jpg',
+      '../images/uem_nega.jpg',
     ];
 
     this.data = {
@@ -51,9 +67,10 @@ class Slider {
     };
 
     this.state = {
-      animating: false,
+      animating: true,
       text: false,
       initial: true,
+      currentHero: true,
     };
 
     this.textures = null;
@@ -66,11 +83,32 @@ class Slider {
   }
 
   setStyles() {
+    const heroText = document.querySelectorAll('.js-slider__text.hero__text');
+
     this.slides.forEach((slide, index) => {
       if (index === 0) return;
 
       gsap.set(slide, { autoAlpha: 0 });
     });
+
+    this.alphaContent.forEach((el) => {
+      gsap.set(el, { autoAlpha: 0 });
+    });
+
+    gsap.fromTo(
+      heroText,
+      {
+        alpha: 0,
+      },
+      {
+        alpha: 1,
+        duration: 2,
+        onComplete: () => {
+          this.state.animating = false;
+        },
+      },
+      1
+    );
   }
 
   cameraSetup() {
@@ -129,7 +167,7 @@ class Slider {
     this.mat = new THREE.ShaderMaterial({
       uniforms: {
         dispPower: { type: 'f', value: 0.0 },
-        intensity: { type: 'f', value: 0.1 },
+        intensity: { type: 'f', value: 0.5 },
         res: {
           value: new THREE.Vector2(window.innerWidth, window.innerHeight),
         },
@@ -138,6 +176,7 @@ class Slider {
         texCurrent: { type: 't', value: this.textures[0] },
         texNext: { type: 't', value: this.textures[1] },
         disp: { type: 't', value: this.disp },
+        uTick: 0,
       },
       transparent: true,
       vertexShader: this.vert,
@@ -178,6 +217,281 @@ class Slider {
     });
   }
 
+  transitionNextAnimation() {
+    if (this.wheelY > 0) {
+      this.current = this.slides[this.data.current];
+      this.next = this.slides[this.data.next];
+      this.nData = this.data.next;
+      this.cY = -100;
+      this.nY = 100;
+    } else if (this.wheelY < 0) {
+      this.current = this.slides[this.data.current];
+      this.next = this.slides[this.data.prev];
+      this.nData = this.data.prev;
+      this.cY = 100;
+      this.nY = -100;
+    }
+
+    // center-nabのアクティブ設定
+    this.setActive('.center-nav__item');
+    // sub-nabのアクティブ設定
+    this.setActive('.sub-nav__item');
+
+    // hero__text
+    const cHeroText = this.current.querySelector('.js-slider__text.hero__text');
+    const nHeroText = this.next.querySelector('.js-slider__text.hero__text');
+
+    // main__text
+    const cMainText = this.current.querySelector('.js-slider__text.main__text');
+    const nMainText = this.next.querySelector('.js-slider__text.main__text');
+
+    // img
+    const cImg = this.current.querySelector('.slider__image img');
+    const nImg = this.next.querySelector('.slider__image img');
+
+    // content
+    const cContent = this.current.querySelector('.slider__content .more');
+    const nContent = this.next.querySelector('.slider__content .more');
+
+    if (this.state.currentHero) {
+      this.state.currentHero = false;
+    } else if (this.nData === 0) {
+      this.state.currentHero = true;
+    }
+
+    // centernav
+    this.centernavAnimation();
+
+    // timeline
+    const tl = new gsap.timeline({ paused: true });
+
+    if (cHeroText) {
+      tl.to(cHeroText, {
+        duration: 1.5,
+        alpha: 0,
+        ease: 'Power4.easeInOut',
+      });
+    }
+
+    if (this.state.currentHero) {
+      tl.fromTo(
+        cMainText,
+        {
+          alpha: 1,
+          y: 0,
+        },
+        {
+          alpha: 0,
+          y: this.cY,
+          duration: 1.3,
+          ease: 'Power4.easeInOut',
+        }
+      )
+        .fromTo(
+          cImg,
+          {
+            alpha: 1,
+            y: 0,
+          },
+          {
+            alpha: 0,
+            y: this.cY,
+            duration: 1.5,
+            ease: 'Power4.easeInOut',
+          },
+          '<'
+        )
+        .fromTo(
+          cContent,
+          {
+            alpha: 0.5,
+          },
+          {
+            alpha: 0,
+          },
+          '<'
+        )
+        .to(
+          this.centerNavs,
+          {
+            alpha: 0,
+            duration: 0.5,
+          },
+          '<'
+        )
+        .to(
+          this.subNavs,
+          {
+            alpha: 0,
+            duration: 0.0,
+          },
+          '<'
+        )
+        .to(
+          this.centerLine,
+          {
+            alpha: 0,
+            duration: 0.5,
+          },
+          '<'
+        )
+        .to(
+          this.rotateLink,
+          {
+            alpha: 0,
+            duration: 0.5,
+          },
+          '<'
+        );
+    } else {
+      tl.fromTo(
+        cMainText,
+        {
+          alpha: 1,
+          y: 0,
+        },
+        {
+          alpha: 0,
+          y: this.cY,
+          duration: 1.3,
+          ease: 'Power4.easeInOut',
+        }
+      )
+        .fromTo(
+          cImg,
+          {
+            alpha: 1,
+            y: 0,
+          },
+          {
+            alpha: 0,
+            y: this.cY,
+            duration: 1.5,
+            ease: 'Power4.easeInOut',
+          },
+          '<'
+        )
+        .fromTo(
+          cContent,
+          {
+            alpha: 0.5,
+          },
+          {
+            alpha: 0,
+          },
+          '<'
+        );
+    }
+
+    tl.set(this.current, {
+      autoAlpha: 0,
+    }).set(
+      this.next,
+      {
+        autoAlpha: 1,
+      },
+      1.0
+    );
+
+    if (nHeroText) {
+      tl.to(nHeroText, {
+        duration: 2,
+        alpha: 1,
+      });
+    }
+
+    if (nMainText && nImg) {
+      tl.fromTo(
+        nMainText,
+        {
+          alpha: 0,
+          y: this.nY,
+        },
+        {
+          alpha: 1,
+          y: 0,
+          duration: 1,
+          ease: 'Power4.easeInOut',
+        },
+        '<'
+      )
+        .fromTo(
+          nImg,
+          {
+            alpha: 0,
+            y: this.nY,
+          },
+          {
+            alpha: 1,
+            y: 0,
+            duration: 1,
+            ease: 'Power4.easeInOut',
+          },
+          '<'
+        )
+        .fromTo(
+          nContent,
+          {
+            alpha: 0.5,
+          },
+          {
+            alpha: 0.5,
+            duration: 1,
+          },
+          '<'
+        )
+        .to(
+          this.centerNavs,
+          {
+            autoAlpha: 1,
+            duration: 1,
+          },
+          '<'
+        )
+        .to(
+          this.subNavs,
+          {
+            autoAlpha: 1,
+            duration: 0,
+          },
+          '<'
+        )
+        .to(
+          this.centerLine,
+          {
+            autoAlpha: 1,
+            duration: 1,
+          },
+          '<'
+        )
+        .to(
+          this.rotateLink,
+          {
+            autoAlpha: 1,
+            duration: 1,
+          },
+          '<'
+        );
+    }
+
+    tl.play();
+  }
+
+  centernavAnimation() {
+    if (!(this.nData === 0)) {
+      const fsSize = window.innerWidth;
+
+      const nNum = this.nData - 1;
+      const constant = -(fsSize * 0.02 * nNum + (fsSize * 0.02 * nNum) / 2);
+
+      gsap.to(this.centerNav, {
+        y: constant,
+        duration: 2,
+        ease: 'Power4.easeInOut',
+      });
+    }
+  }
+
   nextSlide(e) {
     if (this.state.animating) return;
 
@@ -185,6 +499,7 @@ class Slider {
     this.wheelY = e.deltaY;
 
     this.transitionNext();
+    this.transitionNextAnimation();
 
     // wheelのup,downでdataを変更
     if (this.wheelY > 0) {
@@ -199,6 +514,22 @@ class Slider {
       this.data.next =
         this.data.current === this.data.total ? 0 : this.data.current + 1;
       this.data.prev = this.data.current === 0 ? 4 : this.data.current - 1;
+    }
+  }
+
+  setActive(el) {
+    this.navs = document.querySelectorAll(el);
+    if (!(this.nData === 0)) {
+      this.navs.forEach((n) => {
+        n.classList.remove('is-active');
+      });
+
+      const nav = this.navs[this.nData - 1];
+      nav.classList.add('is-active');
+    } else {
+      this.navs.forEach((n) => {
+        n.classList.remove('is-active');
+      });
     }
   }
 
@@ -243,5 +574,34 @@ links.forEach((link) => {
   });
 });
 
-// Init classes
 const slider = new Slider();
+
+// rotate-link
+class RotateAnimation {
+  constructor(el) {
+    this.DOM = {};
+    this.DOM.el = el instanceof HTMLElement ? el : document.querySelector(el);
+    this.chars = this.DOM.el.innerHTML.trim().split('');
+    this.DOM.el.innerHTML = this._splitText();
+    this._styleRotate();
+  }
+
+  _splitText() {
+    return this.chars.reduce((acc, curr) => {
+      curr = curr.replace(/\s+/, '&nbsp;');
+      return `${acc}<span class="char">${curr}</span>`;
+    }, '');
+  }
+
+  _styleRotate() {
+    const chars = this.DOM.el.querySelectorAll('.char');
+    const charsTotal = chars.length - 1;
+    const incDeg = 240 / charsTotal;
+    chars.forEach((char, index) => {
+      let rotateDeg = incDeg * index;
+      char.style.setProperty('transform', `rotate( ${rotateDeg}deg)`);
+    });
+  }
+}
+
+const roatteAnimation = new RotateAnimation('.rotate-link__rotate-text');

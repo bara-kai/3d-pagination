@@ -8,6 +8,7 @@
     uniform float intensity;
     uniform float wheel;
 
+
     uniform vec2 size;
     uniform vec2 res;
 
@@ -46,4 +47,5 @@
       vec4 _texNext = texture2D(texNext, distPos2);
       
       gl_FragColor = mix(_texCurrent, _texNext, dispPower);
+
     }
