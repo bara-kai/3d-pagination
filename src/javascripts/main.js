@@ -10,7 +10,7 @@ import '../images/uem_nega.jpg';
 import '../images/displavement/noise_1.png';
 
 // jsライブラリー読み込み
-import $, { get } from 'jquery';
+import $, { cssNumber, get } from 'jquery';
 import { scrollify } from 'jquery-scrollify/jquery.scrollify';
 import * as THREE from 'three';
 import vertexShader from './shader/vertex.glsl';
@@ -89,31 +89,49 @@ class Slider {
 
   setStyles() {
     const heroText = document.querySelectorAll('.js-slider__text.hero__text');
+    const heroCloud = document.querySelectorAll('.js-slider__cloud');
 
     this.slides.forEach((slide, index) => {
       if (index === 0) return;
 
       gsap.set(slide, { autoAlpha: 0 });
     });
-
     this.alphaContent.forEach((el) => {
       gsap.set(el, { autoAlpha: 0 });
     });
 
-    gsap.fromTo(
-      heroText,
-      {
-        alpha: 0,
-      },
-      {
-        alpha: 1,
-        duration: 2,
-        onComplete: () => {
-          this.state.animating = false;
+    const heroTl = new gsap.timeline({ paused: true });
+
+    console.log(heroCloud);
+
+    heroTl
+      .fromTo(
+        heroText,
+        {
+          alpha: 0,
         },
-      },
-      1
-    );
+        {
+          alpha: 1,
+          duration: 2,
+          onComplete: () => {
+            this.state.animating = false;
+          },
+        },
+        1
+      )
+      .fromTo(
+        heroCloud,
+        {
+          alpha: 0,
+        },
+        {
+          alpha: 1,
+          duration: 2,
+        },
+        1
+      );
+
+    heroTl.play();
   }
 
   cameraSetup() {
@@ -245,6 +263,9 @@ class Slider {
     // hero__text
     const cHeroText = this.current.querySelector('.js-slider__text.hero__text');
     const nHeroText = this.next.querySelector('.js-slider__text.hero__text');
+    // hero__cloud
+    const cHeroCloud = this.current.querySelectorAll('.js-slider__cloud');
+    const nHeroCloud = this.next.querySelectorAll('.js-slider__cloud');
 
     // main__text
     const cMainText = this.current.querySelector('.js-slider__text.main__text');
@@ -269,13 +290,22 @@ class Slider {
 
     // timeline
     const tl = new gsap.timeline({ paused: true });
+    console.log(cHeroCloud);
 
     if (cHeroText) {
       tl.to(cHeroText, {
         duration: 1.5,
         alpha: 0,
         ease: 'Power4.easeInOut',
-      });
+      }).to(
+        [cHeroCloud],
+        {
+          duration: 0.5,
+          alpha: 0,
+          ease: 'Power4.easeInOut',
+        },
+        '<'
+      );
     }
 
     if (this.state.currentHero) {
@@ -402,7 +432,14 @@ class Slider {
       tl.to(nHeroText, {
         duration: 2,
         alpha: 1,
-      });
+      }).to(
+        [nHeroCloud],
+        {
+          duration: 2,
+          alpha: 1,
+        },
+        '<'
+      );
     }
 
     if (nMainText && nImg) {
