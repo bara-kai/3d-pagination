@@ -19,6 +19,11 @@ import { gsap } from 'gsap';
 import { constant, sample, times, update } from 'lodash';
 import { Material, NoBlending } from 'three';
 
+window.onload = function () {
+  const spinner = document.getElementById('loading');
+  spinner.classList.add('loaded');
+};
+
 class Slider {
   constructor() {
     this.bindAll();
